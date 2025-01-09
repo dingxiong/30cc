@@ -225,7 +225,7 @@ symbol *new_symbol(context *ctx, char *name, general_type *type)
         symbol *lastsym = ((symbol *)ctx->symbol_table->last->value);
         newsym->offset = lastsym->offset + lastsym->type->size(lastsym->type, ctx);
     }
-    newsym->repl = cc_asprintf("[rbp-%u]", newsym->offset + sz);
+    newsym->repl = cc_asprintf("[x29, #-%u]", newsym->offset + sz);
     add_to_list(ctx->symbol_table, newsym);
     ctx->stack_size += sz;
     return newsym;
@@ -473,7 +473,7 @@ char *reg_a(general_type *tp, context *ctx)
     if (sz == 1)
         return "al";
     else if (sz == 8)
-        return "rax";
+        return "x0";
     return NULL;
 }
 
@@ -490,71 +490,71 @@ char *reg_b(general_type *tp, context *ctx)
 char *reg_typed(char *reg, general_type *tp, context *ctx)
 {
     int sz = tp->size(tp, ctx);
-    if (strcmp(reg, "rdi") == 0)
+    if (strcmp(reg, "x0") == 0)
     {
         if (sz == 8)
-            return "rdi";
+            return "x0";
         else if (sz == 4)
-            return "edi";
+            return "w0";
         else if (sz == 2)
-            return "di";
+            return "w0";
         else if (sz == 1)
-            return "dil";
+            return "w0";
     }
-    else if (strcmp(reg, "rsi") == 0)
+    else if (strcmp(reg, "x1") == 0)
     {
         if (sz == 8)
-            return "rsi";
+            return "x1";
         else if (sz == 4)
-            return "esi";
+            return "w1";
         else if (sz == 2)
-            return "si";
+            return "w1";
         else if (sz == 1)
-            return "sil";
+            return "w1";
     }
-    else if (strcmp(reg, "rdx") == 0)
+    else if (strcmp(reg, "x2") == 0)
     {
         if (sz == 8)
-            return "rdx";
+            return "x2";
         else if (sz == 4)
-            return "edx";
+            return "w2";
         else if (sz == 2)
-            return "dx";
+            return "w2";
         else if (sz == 1)
-            return "dl";
+            return "w2";
     }
-    else if (strcmp(reg, "rcx") == 0)
+    else if (strcmp(reg, "x3") == 0)
     {
         if (sz == 8)
-            return "rcx";
+            return "x3";
         else if (sz == 4)
-            return "ecx";
+            return "w3";
         else if (sz == 2)
-            return "cx";
+            return "w3";
         else if (sz == 1)
-            return "cl";
+            return "w3";
     }
-    else if (strcmp(reg, "r8") == 0)
+    else if (strcmp(reg, "x4") == 0)
     {
         if (sz == 8)
-            return "r8";
+            return "x4";
         else if (sz == 4)
-            return "r8d";
+            return "w4";
         else if (sz == 2)
-            return "r8w";
+            return "w4";
         else if (sz == 1)
-            return "r8b";
+            return "w4";
     }
-    else if (strcmp(reg, "r9") == 0)
+    else if (strcmp(reg, "x5") == 0)
     {
         if (sz == 8)
-            return "r9";
+            return "x5";
         else if (sz == 4)
-            return "r9d";
+            return "w5";
         else if (sz == 2)
-            return "r9w";
+            return "w5";
         else if (sz == 1)
-            return "r9b";
+            return "w5";
     }
     else
     {

@@ -23,11 +23,11 @@ apply_result *func_def_apply(parser_node *node, context *ctx)
         replace_text(ctx, extern_txt, cmt_extern_txt);
     }
 
-    add_text(ctx, "global %s", func->identity);
+    add_text(ctx, ".global %s", func->identity);
     add_text(ctx, "%s:", func->identity);
-    add_text(ctx, "push rbp");
-    add_text(ctx, "mov rbp, rsp");
-    add_text(ctx, "sub rsp, __%s_size", func->identity);
+    add_text(ctx, "sub sp, sp, #32");
+    add_text(ctx, "stp x29, x30, [sp, #16]");
+    add_text(ctx, "add x29, sp, #16");
 
     for (int i = 0; i < func->num_params; i++)
     {
@@ -35,17 +35,17 @@ apply_result *func_def_apply(parser_node *node, context *ctx)
 
         char *regname = NULL;
         if (i == 0)
-            regname = "rdi";
+            regname = "x0";
         else if (i == 1)
-            regname = "rsi";
+            regname = "x1";
         else if (i == 2)
-            regname = "rdx";
+            regname = "x2";
         else if (i == 3)
-            regname = "rcx";
+            regname = "x3";
         else if (i == 4)
-            regname = "r8";
+            regname = "x4";
         else if (i == 5)
-            regname = "r9";
+            regname = "x5";
         else
         {
             fprintf(stderr, "Cannot define a function with more than 6 args!");
@@ -54,7 +54,7 @@ apply_result *func_def_apply(parser_node *node, context *ctx)
         regname = reg_typed(regname, par->type, ctx);
 
         symbol *sym = new_symbol(ctx, par->name, par->type);
-        add_text(ctx, "mov %s, %s", sym->repl, regname);
+        add_text(ctx, "str %s, %s", regname, sym->repl);
     }
 
     for (int i = 0; i < func->statements->total; i++)
@@ -63,8 +63,8 @@ apply_result *func_def_apply(parser_node *node, context *ctx)
         node->apply(node, ctx);
     }
 
-    add_text(ctx, "mov rsp, rbp");
-    add_text(ctx, "pop rbp");
+    add_text(ctx, "ldp x29, x30, [sp, #16]");
+    add_text(ctx, "add sp, sp, #32");
     add_text(ctx, "ret");
     return NULL;
 }

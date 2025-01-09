@@ -40,9 +40,9 @@ $(STAGE3_BIN): $(STAGE2_BIN) **/*.h **/*.c
 	rm -rf target2
 
 run: $(BIN)
-	@./30cc $(program) --asm > out.asm
-	@nasm -f elf64 out.asm -o out.o
-	@ld -dynamic-linker /lib64/ld-linux-x86-64.so.2 -lc -o out out.o
+	@./30cc_gcc $(program) --asm > out.s
+	@as out.s -o out.o
+	@ld -o out out.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` -e _start -arch arm64
 	@echo "$ ./out \"$(arguments)\""
 	@echo "-------------"
 	@./out $(arguments)

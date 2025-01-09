@@ -38,7 +38,7 @@ apply_result *func_call_apply(parser_node *node, context *ctx)
         symbol *tmp = new_temp_symbol(ctx, regval->type);
         char *rega = reg_a(regval->type, ctx);
         add_text(ctx, "mov %s, %s", rega, regval->code);
-        add_text(ctx, "mov %s, %s", tmp->repl, rega);
+        add_text(ctx, "str %s, %s", rega, tmp->repl);
 
         argvals[i] = tmp->repl;
         argtypes[i] = regval->type;
@@ -47,24 +47,24 @@ apply_result *func_call_apply(parser_node *node, context *ctx)
     {
         char *regname = NULL;
         if (i == 0)
-            regname = "rdi";
+            regname = "x0";
         else if (i == 1)
-            regname = "rsi";
+            regname = "x1";
         else if (i == 2)
-            regname = "rdx";
+            regname = "x2";
         else if (i == 3)
-            regname = "rcx";
+            regname = "x3";
         else if (i == 4)
-            regname = "r8";
+            regname = "x4";
         else if (i == 5)
-            regname = "r9";
+            regname = "x5";
         else
         {
             fprintf(stderr, "Cannot provide more than 6 args!\n");
             exit(1);
         }
         regname = reg_typed(regname, argtypes[i], ctx);
-        add_text(ctx, "mov %s, %s", regname, argvals[i]);
+        add_text(ctx, "ldr %s, %s", regname, argvals[i]);
     }
 
     apply_result *fun_obj = call->func->apply(call->func, ctx);
@@ -82,14 +82,14 @@ apply_result *func_call_apply(parser_node *node, context *ctx)
     }
     general_type *ret_type = ((func_type *)fun_type->data)->return_type;
 
-    add_text(ctx, "call %s", fun_obj->code);
+    add_text(ctx, "bl %s", fun_obj->code);
 
     char *rega = reg_a(ret_type, ctx);
     // If return type is not void
     if (rega)
     {
         symbol *tmp = new_temp_symbol(ctx, ret_type);
-        add_text(ctx, "mov %s, %s", tmp->repl, rega);
+        add_text(ctx, "str %s, %s", rega, tmp->repl);
         return new_result(tmp->repl, tmp->type);
     }
     else
