@@ -50,9 +50,12 @@ apply_result *return_apply(parser_node *node, context *ctx)
         add_text(ctx, "ldr %s, %s", reg_a(val->type, ctx), val->code);
     }
 
-    add_text(ctx, "ldp x29, x30, [sp, #16]");
-    add_text(ctx, "add sp, sp, #32");
+    add_text(ctx, "mov sp, x29");
+    add_text(ctx, "ldp x29, x30, [sp]");
+    add_text(ctx, "add sp, sp, #16");
     add_text(ctx, "ret");
+
+
     return NULL;
 }
 

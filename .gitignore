@@ -1,5 +1,6 @@
 /temp_snapshots
 out
+out.s
 out.asm
 output.txt
 /target1

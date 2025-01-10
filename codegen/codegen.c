@@ -96,6 +96,7 @@ context *new_context()
     ctx->label_counter = 0;
     ctx->loop_end_labels = new_linked_list();
     ctx->loop_start_labels = new_linked_list();
+    ctx->functions = new_linked_list();
     ctx->stack_size = 0;
     return ctx;
 }
@@ -473,7 +474,7 @@ char *reg_a(general_type *tp, context *ctx)
     if (sz == 1)
         return "al";
     else if (sz == 8)
-        return "x0";
+        return "x9";
     return NULL;
 }
 
@@ -483,7 +484,7 @@ char *reg_b(general_type *tp, context *ctx)
     if (sz == 1)
         return "bl";
     else if (sz == 8)
-        return "rbx";
+        return "x10";
     return NULL;
 }
 

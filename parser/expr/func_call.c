@@ -2,6 +2,7 @@
 #include "../../lexer.h"
 #include "../parser.h"
 #include "func_call.h"
+#include "../func.h"
 #include "expr.h"
 
 void func_call_debug(int depth, parser_node *node)
@@ -37,7 +38,25 @@ apply_result *func_call_apply(parser_node *node, context *ctx)
 
         symbol *tmp = new_temp_symbol(ctx, regval->type);
         char *rega = reg_a(regval->type, ctx);
-        add_text(ctx, "mov %s, %s", rega, regval->code);
+        int is_str_literal = 0;
+        if (regval->type->kind == TYPE_POINTER)
+        {
+            general_type* base = ((pointer_type*)regval->type->data)->of;
+            if (base->kind == TYPE_PRIMITIVE && strcmp(((primitive_type*)base->data)->type_name, "TKN_CHAR") == 0) 
+            {
+              is_str_literal = 1;
+            }
+        } 
+        if (is_str_literal)
+        {
+
+            add_text(ctx, "adrp %s, %s@PAGE", rega, regval->code);
+            add_text(ctx, "add %s, %s, %s@PAGEOFF", rega, rega, regval->code);
+        }
+        else 
+        {
+            add_text(ctx, "mov %s, %s", rega, regval->code);
+        }
         add_text(ctx, "str %s, %s", rega, tmp->repl);
 
         argvals[i] = tmp->repl;
@@ -82,7 +101,41 @@ apply_result *func_call_apply(parser_node *node, context *ctx)
     }
     general_type *ret_type = ((func_type *)fun_type->data)->return_type;
 
+    // MacOS has different ABI for variadic function
+    // TODO: improve this lookup
+    int is_variadic = 0;
+    int num_fix_params = 0;
+    list_node *curr = ctx->functions->first;
+    while (curr)
+    {
+        parser_node* node = (parser_node*)curr->value;
+        node_func_def* func_def = (node_func_def*)node->data;
+        if (strcmp(func_def->identity, fun_obj->code) == 0)
+        {
+            is_variadic = func_def->is_variadic;
+            num_fix_params = func_def->num_params;
+            break;
+        }
+        curr = curr->next;
+    }
+    
+    if (is_variadic) 
+    {
+        // variadic arguments should also be put inside stack
+        for (int i = num_fix_params; i < call->num_args; i++) 
+        {
+            add_text(ctx, "str x%d, [sp, #-16]!", i);
+        }
+    }
     add_text(ctx, "bl %s", fun_obj->code);
+    if (is_variadic) 
+    {
+        // restore sp
+        for (int i = num_fix_params; i < call->num_args; i++) 
+        {
+            add_text(ctx, "add sp, sp, #16");
+        }
+    }
 
     char *rega = reg_a(ret_type, ctx);
     // If return type is not void

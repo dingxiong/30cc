@@ -20,7 +20,7 @@ apply_result *for_apply(parser_node *node, context *ctx)
     char *end_for = new_loop_end_label(ctx);
     char *cond_for = new_label(ctx);
 
-    add_text(ctx, "jmp %s", cond_for);
+    add_text(ctx, "b %s", cond_for);
     add_text(ctx, "%s:", start_for);
     forn->act->apply(forn->act, ctx);
 
@@ -29,7 +29,7 @@ apply_result *for_apply(parser_node *node, context *ctx)
     char *rega = reg_a(condv->type, ctx);
     add_text(ctx, "mov %s, %s", rega, condv->code);
     add_text(ctx, "cmp %s, 0", rega);
-    add_text(ctx, "je %s", end_for);
+    add_text(ctx, "beq %s", end_for);
     forn->body->apply(forn->body, ctx);
     add_text(ctx, "jmp %s", start_for);
     add_text(ctx, "%s:", end_for);

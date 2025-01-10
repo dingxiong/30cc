@@ -13,21 +13,27 @@ apply_result *func_def_apply(parser_node *node, context *ctx)
 
     if (!func->statements)
     {
-        add_text(ctx, "extern %s", func->identity);
+        add_text(ctx, ".extern %s", func->identity);
         return NULL;
     }
     else
     {
-        char *extern_txt = cc_asprintf("extern %s", func->identity);
-        char *cmt_extern_txt = cc_asprintf(";extern %s", func->identity);
+        char *extern_txt = cc_asprintf(".extern %s", func->identity);
+        char *cmt_extern_txt = cc_asprintf(";.extern %s", func->identity);
         replace_text(ctx, extern_txt, cmt_extern_txt);
     }
 
     add_text(ctx, ".global %s", func->identity);
     add_text(ctx, "%s:", func->identity);
-    add_text(ctx, "sub sp, sp, #32");
-    add_text(ctx, "stp x29, x30, [sp, #16]");
-    add_text(ctx, "add x29, sp, #16");
+    add_text(ctx, "sub sp, sp, #16");
+    add_text(ctx, "stp x29, x30, [sp]");
+    add_text(ctx, "mov x29, sp");
+
+    add_text(ctx, "adrp x0, __%s_size@PAGE", func->identity);
+    add_text(ctx, "add x0, x0, __%s_size@PAGEOFF", func->identity);
+    add_text(ctx, "ldr x0, [x0]");
+    add_text(ctx, "sub sp, sp, x0");
+
 
     for (int i = 0; i < func->num_params; i++)
     {
@@ -63,9 +69,11 @@ apply_result *func_def_apply(parser_node *node, context *ctx)
         node->apply(node, ctx);
     }
 
-    add_text(ctx, "ldp x29, x30, [sp, #16]");
-    add_text(ctx, "add sp, sp, #32");
+    add_text(ctx, "mov sp, x29");
+    add_text(ctx, "ldp x29, x30, [sp]");
+    add_text(ctx, "add sp, sp, #16");
     add_text(ctx, "ret");
+    
     return NULL;
 }
 
@@ -115,6 +123,7 @@ parser_node *parse_function(typed_token **tkns_ptr)
 {
     typed_token *tkn = *tkns_ptr;
     parser_node *return_type = parse_type(&tkn, 0);
+    int is_variadic = 0;
     if (return_type)
     {
         if (tkn->type_id == TKN_ID)
@@ -137,6 +146,7 @@ parser_node *parse_function(typed_token **tkns_ptr)
                         if (tkn->type_id == TKN_R_PAREN)
                         {
                             tkn = tkn->next;
+                            is_variadic = 1;
                             break;
                         }
                         else
@@ -187,6 +197,7 @@ parser_node *parse_function(typed_token **tkns_ptr)
                     decl->params = params;
                     decl->num_statements = 0;
                     decl->statements = NULL;
+                    decl->is_variadic = is_variadic;
 
                     return node;
                 }
@@ -220,6 +231,7 @@ parser_node *parse_function(typed_token **tkns_ptr)
                         func->num_params = params_count;
                         func->params = params;
                         func->statements = stmts;
+                        func->is_variadic = is_variadic;
 
                         return node;
                     }
