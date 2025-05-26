@@ -190,6 +190,7 @@ parser_node *parse_func_call(typed_token **tkns_ptr, parser_node *func)
             {
                 tkn = tkn->next;
             }
+            // TODO: I believe below else branch is redundant.
             else
             {
                 if (tkn->type_id != TKN_R_PAREN)
