@@ -218,7 +218,7 @@ apply_result *binary_op_apply(parser_node *node, context *ctx)
     }
     else
     {
-        add_text(ctx, "mov %s, %s", rega, left->code);
+        add_text(ctx, "ldr %s, %s", rega, left->code);
         add_text(ctx, "mov %s, %s", regb, right->code);
     }
 
@@ -247,14 +247,14 @@ apply_result *binary_op_apply(parser_node *node, context *ctx)
         }
         break;
     case TKN_PLUS:
-        add_text(ctx, "add %s, %s", rega, regb);
+        add_text(ctx, "add %s, %s, %s", rega, rega, regb);
         break;
     case TKN_PLUSEQ:
         add_text(ctx, "add %s, %s", rega, regb);
         move_reg_to_var(ctx, left, rega);
         break;
     case TKN_MIN:
-        add_text(ctx, "sub %s, %s", rega, regb);
+        add_text(ctx, "sub %s, %s, %s", rega, rega, regb);
         break;
     case TKN_MINEQ:
         add_text(ctx, "sub %s, %s", rega, regb);
@@ -341,7 +341,7 @@ apply_result *binary_op_apply(parser_node *node, context *ctx)
     }
 
     char *rega_res = reg_a(tmp->type, ctx);
-    add_text(ctx, "mov %s, %s", tmp->repl, rega_res);
+    add_text(ctx, "ldr %s, %s", tmp->repl, rega_res);
     return new_result(tmp->repl, tmp->type);
 }
 

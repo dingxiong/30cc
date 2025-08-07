@@ -13,6 +13,7 @@ typedef struct
     int label_counter;
     linked_list *loop_end_labels;
     linked_list *loop_start_labels;
+    linked_list *functions;
     int stack_size;
 } context;
 

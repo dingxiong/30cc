@@ -1,5 +1,6 @@
 #include "libc.h"
 #include "lexer.h"
+#include <stdio.h>
 #include "parser/program.h"
 #include "linked_list.h"
 #include "preprocess/preprocess.h"
@@ -17,6 +18,7 @@ typed_token *process(char *filename, int log_lex, int log_prep)
     _30cc_define->replace = new_linked_list();
     add_to_list(ctx->defs, _30cc_define);
 
+    // printf("tokenize file ...\n"); fflush(stdout);
     typed_token *lexed = tokenize_file(filename);
     if (log_lex)
     {
@@ -44,6 +46,7 @@ typed_token *process(char *filename, int log_lex, int log_prep)
 
 int main(int argc, char **argv)
 {
+    // printf("start main ... \n"); fflush(stdout);
     if (argc == 2)
     {
         if (strcmp(argv[1], "-v") == 0)
@@ -79,6 +82,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    // printf("start parsing ... \n"); fflush(stdout);
     parser_node *prog = parse_program(&tkn);
     if (prog)
     {
@@ -99,13 +103,13 @@ int main(int argc, char **argv)
         context *ctx = new_context();
         prog->apply(prog, ctx);
         list_node *curr = ctx->data->first;
-        printf("section .data\n");
+        printf(".data\n");
         while (curr)
         {
             printf("%s\n", (char *)curr->value);
             curr = curr->next;
         }
-        printf("section .text\n");
+        printf(".text\n");
         curr = ctx->text->first;
         while (curr)
         {

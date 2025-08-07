@@ -9,6 +9,7 @@ struct apply_result_;
 
 typedef struct parser_node_
 {
+    // TODO: I believe below type field is never used.
     int type;
     void *data;
     void (*debug)(int, struct parser_node_ *);

@@ -3,6 +3,7 @@
 #include "../lexer.h"
 #include "break.h"
 #include "parser.h"
+#include <stdio.h>
 #include "statement.h"
 #include "switch.h"
 #include "var_decl.h"
@@ -46,12 +47,15 @@ apply_result *return_apply(parser_node *node, context *ctx)
     if (func->exp)
     {
         apply_result *val = func->exp->apply(func->exp, ctx);
-        add_text(ctx, "mov %s, %s", reg_a(val->type, ctx), val->code);
+        add_text(ctx, "ldr %s, %s", reg_a(val->type, ctx), val->code);
     }
 
-    add_text(ctx, "mov rsp, rbp");
-    add_text(ctx, "pop rbp");
+    add_text(ctx, "mov sp, x29");
+    add_text(ctx, "ldp x29, x30, [sp]");
+    add_text(ctx, "add sp, sp, #16");
     add_text(ctx, "ret");
+
+
     return NULL;
 }
 

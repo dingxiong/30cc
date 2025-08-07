@@ -5,7 +5,7 @@ H_FILES := $(filter-out $(wildcard examples/*), $(shell find . -type f -name '*.
 
 # Compile 30cc with gcc
 STAGE1_CC ?= cc
-STAGE1_CFLAGS := -std=gnu99 -Og -ggdb
+STAGE1_CFLAGS := -std=gnu99 -Og -ggdb -O0
 STAGE1_BIN := ./30cc_gcc
 
 # Compile 30cc with gcc-generated 30cc
@@ -39,10 +39,17 @@ $(STAGE3_BIN): $(STAGE2_BIN) **/*.h **/*.c
 	ld -dynamic-linker /lib64/ld-linux-x86-64.so.2 -lc -o $(STAGE3_BIN) $$(find target2 -type f -name '*.o')
 	rm -rf target2
 
+build: $(BIN)
+	@./30cc_gcc $(program) --asm > out.s
+
 run: $(BIN)
-	@./30cc $(program) --asm > out.asm
-	@nasm -f elf64 out.asm -o out.o
-	@ld -dynamic-linker /lib64/ld-linux-x86-64.so.2 -lc -o out out.o
+	@./30cc_gcc $(program) --asm > out.s
+	@as out.s -o out.o
+	@ld -o out out.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` -e _start -arch arm64
 	@echo "$ ./out \"$(arguments)\""
 	@echo "-------------"
 	@./out $(arguments)
+
+## How to test
+# 1. make 30cc_gcc
+# 2. make build program=./examples/inp2.c

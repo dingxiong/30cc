@@ -15,6 +15,7 @@ typedef struct
     parser_node **params;
     int num_statements;
     vector *statements;
+    int is_variadic;
 } node_func_def;
 
 #endif

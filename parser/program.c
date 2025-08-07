@@ -54,6 +54,7 @@ apply_result *program_apply(parser_node *node, context *ctx)
         ctx->symbol_table = new_linked_list();
         ctx->stack_size = 0;
         parser_node *node = prog->functions[i];
+        add_to_list(ctx->functions, node);
         char *func_name = ((node_func_def *)node->data)->identity;
         if (strcmp(func_name, "main") == 0)
         {
@@ -75,23 +76,24 @@ apply_result *program_apply(parser_node *node, context *ctx)
         int total = ctx->stack_size;
         // 16 byte stack alignment
         total = total + (16 - total % 16);
+        
         if (nfd->statements)
-            add_data(ctx, "__%s_size: equ %u", ((node_func_def *)node->data)->identity, total);
+            add_data(ctx, "__%s_size: .int %u", ((node_func_def *)node->data)->identity, total);
     }
     if (has_main_func)
     {
-        add_text(ctx, "extern exit");
-        add_text(ctx, "global _start");
+        add_text(ctx, ".extern _exit");
+        add_text(ctx, ".global _start");
         add_text(ctx, "_start:");
 
         add_text(ctx, "; Pass argc and argv");
-        add_text(ctx, "mov rdi, [rsp]");
-        add_text(ctx, "mov rsi, rsp");
-        add_text(ctx, "add rsi, 8");
+        add_text(ctx, "ldr x0, [sp]");
+        add_text(ctx, "mov x1, sp");
+        add_text(ctx, "add x1, x1, #8");
 
-        add_text(ctx, "call main");
-        add_text(ctx, "mov rdi, rax");
-        add_text(ctx, "call exit");
+        add_text(ctx, "bl main");
+        add_text(ctx, "mov x0, x0");
+        add_text(ctx, "bl _exit");
     }
     return NULL;
 }
